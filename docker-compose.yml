@@ -1,0 +1,42 @@
+version: "3"
+services:
+    api:
+        build: .
+        command: npm run start
+        env_file:
+            - .env
+        depends_on:
+            - redis
+            - db
+        ports:
+            - "3000:3000"
+        volumes:
+            - ./:/home/node/app
+            - /home/node/app/node_modules/bcrypt
+
+    redis:
+        image: redis:7.0.12-alpine
+        restart: always
+        ports:
+            - "6379:6379"
+        command: redis-server --save 20 1 --loglevel warning
+        volumes:
+            - cache:/data
+
+    db:
+        image: postgres:12
+        restart: unless-stopped
+        env_file: .env
+        environment:
+            POSTGRES_USER: rise
+            POSTGRES_PASSWORD: $DB_PASSWORD
+            POSTGRES_DB: rise
+        ports:
+            - "5432:5432"
+        volumes:
+            - db:/var/lib/postgres
+
+volumes:
+    db:
+    cache:
+        driver: local
