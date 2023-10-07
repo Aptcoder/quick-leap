@@ -1,5 +1,4 @@
 import { Cache } from "cache-manager"
-import { Inject, Service } from "typedi"
 
 export class CacheService {
     constructor(private readonly cache: Cache) {

@@ -1,8 +1,6 @@
-import { Service } from "typedi"
 import winston from "winston"
 
-@Service()
-export default class LoggerService {
+export class LoggerService {
     private readonly logger
     constructor() {
         this.logger = winston.createLogger({
@@ -27,7 +25,9 @@ export default class LoggerService {
         return this.logger.info(message)
     }
 
-    error(message: string, meta: {}) {
+    error(message: string, meta?: any) {
         return this.logger.error(message, meta)
     }
 }
+
+export default new LoggerService()
