@@ -8,12 +8,14 @@ import { IRepository } from "../common/interfaces/repositories.interface"
 import { AuthTenantDTO, CreateTenantDTO } from "../common/dtos/users.dtos"
 import { ITenantService } from "../common/interfaces/services.interface"
 import { APIError, ConflictError, NotFoundError } from "../common/errors"
+import { Cache } from "cache-manager"
 
 @injectable()
 export default class TenantService {
     constructor(
         @inject("tenant_repository")
-        private readonly tenantRepo: IRepository<Tenant>
+        private readonly tenantRepo: IRepository<Tenant>,
+        @inject("cache_service") private cache: Cache
     ) {}
 
     private async hashPassword(password: string): Promise<string> {
@@ -60,6 +62,15 @@ export default class TenantService {
 
         const { accessToken } = await this.generateToken(tenant)
         const userWithoutPassword = _.omit(tenant, "password")
+
+        await this.cache.set(
+            accessToken,
+            JSON.stringify({
+                userId: tenant.id,
+                userType: "tenant",
+            }),
+            60 * 60 * 1000
+        )
 
         return { accessToken, tenant: userWithoutPassword }
     }

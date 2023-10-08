@@ -2,15 +2,14 @@ import express, { Application, NextFunction, Request, Response } from "express"
 import { InversifyExpressServer } from "inversify-express-utils"
 import cors from "cors"
 import helmet from "helmet"
-import { initContainer } from "./container"
 import logger from "../common/services/logger"
 import { APIError } from "../common/errors"
+import { Container } from "inversify"
 
 export default class App {
     private server: InversifyExpressServer
 
-    constructor() {
-        const container = initContainer()
+    constructor(container: Container) {
         this.server = new InversifyExpressServer(container, null, {
             rootPath: "/api",
         })

@@ -11,13 +11,14 @@ import {
 } from "inversify-express-utils"
 import { ITenantService } from "../common/interfaces/services.interface"
 import BaseController from "./base.controller"
-import { CreateTenantDTO } from "../common/dtos/users.dtos"
+import { AuthTenantDTO, CreateTenantDTO } from "../common/dtos/users.dtos"
 import validator from "../middlewares/validator"
+import TenantService from "../services/tenant.service"
 
 @controller("/tenants")
 export default class TenantController extends BaseController {
     constructor(
-        @inject("tenant_service") private readonly tenantService: ITenantService
+        @inject("tenant_service") private readonly tenantService: TenantService
     ) {
         super()
     }
@@ -38,6 +39,17 @@ export default class TenantController extends BaseController {
             const tenant =
                 await this.tenantService.createTenant(createTenantDto)
             return this.handleSuccess(res, "Tenant created", tenant)
+        } catch (err) {
+            return this.handleError(res, err)
+        }
+    }
+
+    @httpPost("/auth", validator({ body: AuthTenantDTO }))
+    async authTenant(@request() req: Request, @response() res: Response) {
+        try {
+            const authTenantDto: AuthTenantDTO = req.body
+            const tenant = await this.tenantService.auth(authTenantDto)
+            return this.handleSuccess(res, "Tenant authenticated", tenant)
         } catch (err) {
             return this.handleError(res, err)
         }

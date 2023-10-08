@@ -1,9 +1,13 @@
-import { IUser } from "../../common/interfaces/entities.interfaces"
+import User from "../../entities/user"
+import { Session } from "../../middlewares/auth"
 // to make the file a module and avoid the TypeScript error
 export {}
 
 declare global {
     namespace Express {
-        export interface Request {}
+        export interface Request {
+            user: User
+            session: Session
+        }
     }
 }

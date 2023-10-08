@@ -9,12 +9,14 @@ import { AuthLandlordDTO, CreateLandlordDTO } from "../common/dtos/users.dtos"
 import { ILandlordService } from "../common/interfaces/services.interface"
 import { APIError, ConflictError, NotFoundError } from "../common/errors"
 import Landlord from "../entities/landlord.entity"
+import { Cache } from "cache-manager"
 
 @injectable()
 export default class LandlordService {
     constructor(
         @inject("landlord_repository")
-        private readonly landlordRepo: IRepository<Landlord>
+        private readonly landlordRepo: IRepository<Landlord>,
+        @inject("cache_service") private cache: Cache
     ) {}
 
     private async hashPassword(password: string): Promise<string> {
@@ -64,6 +66,15 @@ export default class LandlordService {
 
         const { accessToken } = await this.generateToken(landlord)
         const userWithoutPassword = _.omit(landlord, "password")
+
+        await this.cache.set(
+            accessToken,
+            JSON.stringify({
+                userId: landlord.id,
+                userType: "landlord",
+            }),
+            60 * 60 * 1000
+        )
 
         return { accessToken, landlord: userWithoutPassword }
     }

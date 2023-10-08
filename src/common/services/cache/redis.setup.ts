@@ -1,8 +1,9 @@
 import { caching } from "cache-manager"
 import { RedisStore, redisStore } from "cache-manager-redis-yet"
 import config from "config"
+import logger from "../logger"
 
-export const init = async (logger: any) => {
+export const init = async () => {
     try {
         if (process.env.NODE_ENV == "test") {
             return caching("memory")
