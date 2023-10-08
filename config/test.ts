@@ -13,7 +13,7 @@ export default {
         port: 5432,
         username: "samuel",
         password: process.env.DB_PASSWORD,
-        database: "rise",
+        database: "rise-",
         ssl: false,
     },
     redis: {

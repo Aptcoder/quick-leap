@@ -38,10 +38,6 @@ export default class App {
      */
     private registerHandlers() {
         this.server.setErrorConfig((app: Application) => {
-            app.get("/", (req, res) => {
-                res.status(200).json({ status: "UP" })
-            })
-
             app.use("*", (req: Request, res: Response) =>
                 res.status(404).send({
                     status: "failed",
