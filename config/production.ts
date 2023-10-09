@@ -8,6 +8,8 @@ export default {
     jwtSecret: process.env.JWT_SECRET,
     database_url: process.env.DATABASE_URL,
     redis_url: process.env.REDIS_URL,
+    sendgrid_api_key: process.env.SENDGRID_KEY,
+    base_url: process.env.BASE_URL,
     database: {
         host: process.env.DB_HOST,
         port: 5432,

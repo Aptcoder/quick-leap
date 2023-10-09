@@ -10,7 +10,11 @@ import {
     requestBody,
     response,
 } from "inversify-express-utils"
-import { AuthUserDTO, CreateUserDTO } from "../common/dtos/users.dtos"
+import {
+    AuthUserDTO,
+    CreateUserDTO,
+    VerifyTokenDTO,
+} from "../common/dtos/users.dtos"
 import BaseController from "./base.controller"
 import UserService from "../services/user.service"
 
@@ -37,7 +41,7 @@ export default class UserController extends BaseController {
         try {
             const createUserDto: CreateUserDTO = req.body
             const tenant = await this.userService.createUser(createUserDto)
-            return this.handleSuccess(res, "User created", tenant)
+            return this.handleSuccess(res, "User created", tenant, 201)
         } catch (err) {
             return this.handleError(res, err)
         }
@@ -48,7 +52,18 @@ export default class UserController extends BaseController {
         try {
             const authTenantDto: AuthUserDTO = req.body
             const tenant = await this.userService.auth(authTenantDto)
-            return this.handleSuccess(res, "User authenticated", tenant)
+            return this.handleSuccess(res, "User authenticated", tenant, 200)
+        } catch (err) {
+            return this.handleError(res, err)
+        }
+    }
+
+    @httpGet("/verify-email/:token", validator({ param: VerifyTokenDTO }))
+    async verifyEmail(@request() req: Request, @response() res: Response) {
+        try {
+            const { token } = req.params
+            await this.userService.verifyEmail(token)
+            return this.handleSuccess(res, "User email verified")
         } catch (err) {
             return this.handleError(res, err)
         }

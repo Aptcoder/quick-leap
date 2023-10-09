@@ -20,3 +20,8 @@ export class AuthUserDTO {
     @IsStrongPassword()
     password!: string
 }
+
+export class VerifyTokenDTO {
+    @IsString()
+    token: string
+}

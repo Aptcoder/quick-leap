@@ -24,6 +24,13 @@ export default class User {
     password!: string
 
     @Column({
+        type: "boolean",
+        default: false,
+        nullable: false,
+    })
+    verified: boolean
+
+    @Column({
         type: "varchar",
         unique: true,
         nullable: false,
