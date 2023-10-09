@@ -2,19 +2,18 @@ import * as bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 import config from "config"
 import _ from "lodash"
-import Tenant from "src/entities/tenant.entity"
 import { inject, injectable } from "inversify"
 import { IRepository } from "../common/interfaces/repositories.interface"
-import { AuthTenantDTO, CreateTenantDTO } from "../common/dtos/users.dtos"
-import { ITenantService } from "../common/interfaces/services.interface"
+import { AuthUserDTO, CreateUserDTO } from "../common/dtos/users.dtos"
 import { APIError, ConflictError, NotFoundError } from "../common/errors"
 import { Cache } from "cache-manager"
+import User from "src/entities/user.entity"
 
 @injectable()
-export default class TenantService {
+export default class UserService {
     constructor(
-        @inject("tenant_repository")
-        private readonly tenantRepo: IRepository<Tenant>,
+        @inject("user_repository")
+        private readonly userRepo: IRepository<User>,
         @inject("cache_service") private cache: Cache
     ) {}
 
@@ -23,63 +22,56 @@ export default class TenantService {
         return hash
     }
 
-    async createTenant(
-        createTenantDto: CreateTenantDTO
-    ): Promise<Omit<Tenant, "password">> {
-        const existingTenant = await this.tenantRepo.findOne({
-            email: createTenantDto.email,
+    async createUser(
+        createUserDto: CreateUserDTO
+    ): Promise<Omit<User, "password">> {
+        const existingUser = await this.userRepo.findOne({
+            email: createUserDto.email,
         })
-        if (existingTenant) {
-            throw new ConflictError("Tenant with this email already exists")
+        if (existingUser) {
+            throw new ConflictError("User with this email already exists")
         }
-        const hashedPassword = await this.hashPassword(createTenantDto.password)
-        const tenant = await this.tenantRepo.create({
-            ...createTenantDto,
+        const hashedPassword = await this.hashPassword(createUserDto.password)
+        const user = await this.userRepo.create({
+            ...createUserDto,
             password: hashedPassword,
         })
 
-        return _.omit(tenant, "password")
+        return _.omit(user, "password")
     }
     public async auth(
-        authTenantDto: AuthTenantDTO
-    ): Promise<{ accessToken: string; tenant: Omit<Tenant, "password"> }> {
-        const { email: userEmail, password: userPassword } = authTenantDto
-        let tenant = await this.tenantRepo.findOne({
+        authUserDto: AuthUserDTO
+    ): Promise<{ accessToken: string; user: Omit<User, "password"> }> {
+        const { email: userEmail, password: userPassword } = authUserDto
+        let user = await this.userRepo.findOne({
             email: userEmail,
         })
 
-        if (!tenant) {
+        if (!user) {
             throw new NotFoundError("User not found")
         }
 
         const comparePasswordResult = await this.comparePassword(
             userPassword,
-            tenant.password!
+            user.password!
         )
         if (!comparePasswordResult) {
             throw new APIError("Invalid password", 401)
         }
 
-        const { accessToken } = await this.generateToken(tenant)
-        const userWithoutPassword = _.omit(tenant, "password")
+        const { accessToken } = await this.generateToken(user)
+        const userWithoutPassword = _.omit(user, "password")
 
-        await this.cache.set(
-            accessToken,
-            JSON.stringify({
-                userId: tenant.id,
-                userType: "tenant",
-            }),
-            60 * 60 * 1000
-        )
+        await this.cache.set(accessToken, user.id, 60 * 60 * 1000)
 
-        return { accessToken, tenant: userWithoutPassword }
+        return { accessToken, user: userWithoutPassword }
     }
 
     public async comparePassword(inputPass: string, password: string) {
         return bcrypt.compare(inputPass, password)
     }
 
-    public async generateToken(user: Tenant): Promise<{ accessToken: string }> {
+    public async generateToken(user: User): Promise<{ accessToken: string }> {
         const payload = {
             email: user.email,
             id: user.id,
@@ -104,7 +96,18 @@ export default class TenantService {
         })
     }
 
-    async getTenants(): Promise<Tenant[]> {
-        return this.tenantRepo.findMany({})
+    async getUsers(): Promise<User[]> {
+        return this.userRepo.findMany({})
+    }
+
+    async getUser(userId: string): Promise<User | null> {
+        const user = await this.userRepo.findOne({
+            id: userId,
+        })
+
+        if (!user) {
+            throw new NotFoundError("User not found")
+        }
+        return user
     }
 }

@@ -1,41 +1,38 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm"
-import Landlord from "./landlord.entity"
+import { Column, Entity, PrimaryGeneratedColumn } from "typeorm"
 
 @Entity()
-export default class House {
+export default class User {
     @PrimaryGeneratedColumn("uuid")
     id!: string
 
     @Column({
-        type: "int",
-        nullable: false,
-    })
-    price!: number
-
-    @Column({
         type: "varchar",
         nullable: false,
-        default: "NGN",
     })
-    currency: string
+    firstName!: string
 
     @Column({
         type: "varchar",
         nullable: false,
     })
-    location!: string
+    lastName!: string
 
     @Column({
-        type: "int",
+        type: "varchar",
         nullable: false,
     })
-    numberOfRooms!: number
+    password!: string
 
-    @Column()
-    landlordId: string
-
-    @ManyToOne(() => Landlord)
-    landlord: Landlord
+    @Column({
+        type: "varchar",
+        unique: true,
+        nullable: false,
+        transformer: {
+            to: (value: string) => value.toLowerCase(),
+            from: (value) => value,
+        },
+    })
+    email!: string
 
     @Column({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
     dateJoined!: Date
