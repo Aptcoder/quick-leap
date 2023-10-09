@@ -20,10 +20,10 @@ export default class MailService {
     async send(msg: MailDataRequired) {
         try {
             const response = await this.sendgrid.send(msg)
-            console.log("Mail sent:", response)
+            console.log("Mail sent: ", response)
             return response
         } catch (err) {
-            console.log("Error sending mail:", err)
+            console.log("Error sending mail: ", err)
             return
         }
     }

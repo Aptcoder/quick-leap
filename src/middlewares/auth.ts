@@ -6,6 +6,7 @@ import { BaseMiddleware } from "inversify-express-utils"
 import { ParamsDictionary } from "express-serve-static-core"
 import { ParsedQs } from "qs"
 import { Cache } from "cache-manager"
+import User from "../entities/user.entity"
 
 export type Session = {
     userType: "landlord" | "tenant"
@@ -68,7 +69,7 @@ export class AuthMiddleware extends BaseMiddleware {
                 })
             }
 
-            req.user.id = userId as string
+            req.user = { id: userId as string } as User
 
             return next()
         } catch (err) {

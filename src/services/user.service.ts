@@ -160,9 +160,16 @@ export default class UserService {
     }
 
     async getUser(userId: string): Promise<User | null> {
+        const cachedData = await this.cache.get(userId)
+        if (cachedData) {
+            const cachedUser = JSON.parse(cachedData as string)
+            return cachedUser
+        }
         const user = await this.userRepo.findOne({
             id: userId,
         })
+
+        await this.cache.set(userId, JSON.stringify(user), 10 * 60)
 
         if (!user) {
             throw new NotFoundError("User not found")
