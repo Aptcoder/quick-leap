@@ -17,7 +17,7 @@ export class AuthUserDTO {
     @IsEmail()
     email!: string
 
-    @IsStrongPassword()
+    @IsString()
     password!: string
 }
 
