@@ -8,11 +8,14 @@ import { createUsers } from "../setup/factories/user"
 import { initContainer } from "../../src/loaders/container"
 import App from "../../src/loaders/app"
 import { initDb } from "../../src/loaders/db"
+import UserService from "../../src/services/user.service"
 
 describe("/users", () => {
     let app: Application
     let ds: DataSource
-    let adminAccessToken: string
+    let accessToken: string
+    let user: Omit<User, "password">
+    let verificationToken: string
     beforeAll(async () => {
         const container = await initContainer()
 
@@ -21,37 +24,39 @@ describe("/users", () => {
         await initDb()
         ds = await setupDb()
 
-        // const userService = container.get<UserService>("user_service")
+        const userService = container.get<UserService>("user_service")
         // const ds = await setupDb()
         await createUsers()
-        // ;({ accessToken: adminAccessToken, user: adminUser } =
-        //     await userService.auth({
-        //         email: "sample@sample.com",
-        //         password: "password",
-        //     }))
+        ;({ accessToken: accessToken, user: user } = await userService.auth({
+            email: "sample@sample.com",
+            password: "password",
+        }))
+        ;({ accessToken: verificationToken } = await userService.generateToken(
+            user as User
+        ))
     })
-    // describe("GET /users", () => {
-    //     test("Should fetch all users", async () => {
-    //         const res = await request(app)
-    //             .get("/api/users")
-    //             .set("Authorization", `Bearer ${adminAccessToken}`)
-    //         expect(res.statusCode).toBe(200)
-    //         expect(res.body).toMatchObject({
-    //             status: "success",
-    //             data: {
-    //                 users: expect.any(Array),
-    //             },
-    //         })
-    //     })
+    describe("GET /users/self - User get own details", () => {
+        test("Should fetch all users", async () => {
+            const res = await request(app)
+                .get("/api/users/self")
+                .set("Authorization", `Bearer ${accessToken}`)
+            expect(res.statusCode).toBe(200)
+            expect(res.body).toMatchObject({
+                status: "success",
+                data: expect.objectContaining({
+                    email: "sample@sample.com",
+                }),
+            })
+        })
 
-    //     test("Should not fetch users if user not authenticated", async () => {
-    //         const res = await request(app).get("/api/users")
-    //         expect(res.statusCode).toBe(401)
-    //         expect(res.body).toMatchObject({
-    //             status: "failed",
-    //         })
-    //     })
-    // })
+        test("Should not fetch user if user not authenticated", async () => {
+            const res = await request(app).get("/api/users/self")
+            expect(res.statusCode).toBe(401)
+            expect(res.body).toMatchObject({
+                status: "failed",
+            })
+        })
+    })
 
     describe("POST /api/login - login user", () => {
         test("Should login user", async () => {
@@ -59,8 +64,6 @@ describe("/users", () => {
                 email: "sample2@sample.com",
                 password: "password",
             })
-
-            console.log("res", res)
             expect(res.statusCode).toBe(200)
             expect(res.body).toMatchObject({
                 status: "success",
@@ -78,6 +81,36 @@ describe("/users", () => {
                 email: "sample2@sample.com",
                 password: "wrong password",
             })
+            expect(res.statusCode).toBe(401)
+            expect(res.body).toMatchObject({
+                status: "failed",
+            })
+        })
+    })
+
+    describe("GET /api/verifify-email - verify user email", () => {
+        test("Should verify user email if token is valid", async () => {
+            const res = await request(app).get(
+                `/api/verify-email/${verificationToken}`
+            )
+
+            expect(res.statusCode).toBe(200)
+
+            const verifiedUser = await ds.manager.findOne(User, {
+                where: {
+                    id: user.id,
+                },
+            })
+
+            expect(verifiedUser).toBeTruthy()
+            expect(verifiedUser?.verified).toBe(true)
+        })
+
+        test("Should not verify user email if token is not valid", async () => {
+            const res = await request(app).get(
+                `/api/verify-email/invalid-token`
+            )
+
             expect(res.statusCode).toBe(401)
             expect(res.body).toMatchObject({
                 status: "failed",

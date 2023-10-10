@@ -25,6 +25,38 @@ export default class UserService {
         return hash
     }
 
+    public async sendVerificationToken(email: string) {
+        const user = await this.userRepo.findOne({
+            email,
+        })
+        if (!user) {
+            throw new NotFoundError("User not foudn")
+        }
+
+        const { accessToken: verification_token } = await this.generateToken(
+            user,
+            (10 * 60 * 60).toString()
+        )
+
+        const verification_url = `${config.get(
+            "base_url"
+        )}/api/verify-email/${verification_token}`
+        await this.mailService.send({
+            personalizations: [
+                {
+                    to: [{ email: user.email }],
+                    dynamicTemplateData: {
+                        verification_url,
+                    },
+                },
+            ],
+            from: { email: "omilosamuel@gmail.com" },
+            templateId: constants.VERIFICATION_TEMPLATE_ID,
+        })
+
+        return
+    }
+
     private verifyToken(token: string) {
         return new Promise((resolve, reject) => {
             jwt.verify(
@@ -43,6 +75,12 @@ export default class UserService {
     async verifyEmail(token: string) {
         try {
             const decoded = await this.verifyToken(token)
+            const user = await this.userRepo.findOne({
+                id: (decoded as { id: string }).id,
+            })
+            if (!user) {
+                throw new NotFoundError("User with email not found")
+            }
             await this.userRepo.update(
                 {
                     id: (decoded as { id: string }).id,
@@ -80,7 +118,6 @@ export default class UserService {
         const verification_url = `${config.get(
             "base_url"
         )}/api/verify-email/${verification_token}`
-        console.log("verification_url", verification_url)
         await this.mailService.send({
             personalizations: [
                 {

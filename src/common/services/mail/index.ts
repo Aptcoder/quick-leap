@@ -19,6 +19,11 @@ export default class MailService {
 
     async send(msg: MailDataRequired) {
         try {
+            const env = config.get<string>("env")
+            if (env === "test") {
+                console.log("Mail sent in test mode")
+                return
+            }
             const response = await this.sendgrid.send(msg)
             console.log("Mail sent: ", response)
             return response
