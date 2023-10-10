@@ -206,11 +206,12 @@ export default class UserService {
             id: userId,
         })
 
-        await this.cache.set(userId, JSON.stringify(user), 10 * 60)
-
         if (!user) {
             throw new NotFoundError("User not found")
         }
+
+        await this.cache.set(userId, JSON.stringify(user), 10 * 60)
+
         return user
     }
 }

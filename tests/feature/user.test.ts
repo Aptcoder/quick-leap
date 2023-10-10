@@ -36,7 +36,7 @@ describe("/users", () => {
         ))
     })
     describe("GET /users/self - User get own details", () => {
-        test("Should fetch all users", async () => {
+        test("Should fetch user's details", async () => {
             const res = await request(app)
                 .get("/api/users/self")
                 .set("Authorization", `Bearer ${accessToken}`)
