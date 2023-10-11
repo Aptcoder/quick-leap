@@ -30,7 +30,7 @@ export default class UserService {
             email,
         })
         if (!user) {
-            throw new NotFoundError("User not foudn")
+            throw new NotFoundError("User not found")
         }
 
         const { accessToken: verification_token } = await this.generateToken(

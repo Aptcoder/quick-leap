@@ -13,8 +13,8 @@ export default class UserRepository implements IRepository<User> {
         return AppDataSource.manager.find(User, { where })
     }
     async create(data: any): Promise<User> {
-        const tenant = await AppDataSource.manager.save(User, data)
-        return tenant
+        const user = await AppDataSource.manager.save(User, data)
+        return user
     }
 
     async update(criteria: Partial<User>, updateData: Partial<User>) {

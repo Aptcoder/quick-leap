@@ -1,7 +1,11 @@
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm"
+import _ from "lodash"
 
 @Entity()
 export default class User {
+    toJSON() {
+        return _.omit(this, "password")
+    }
     @PrimaryGeneratedColumn("uuid")
     id!: string
 

@@ -9,6 +9,10 @@ export const sampleUser: User = {
     id: "random",
     verified: true,
     dateJoined: new Date(),
+
+    toJSON() {
+        return sampleUser
+    },
 }
 export const mockUserRepository: IRepository<User> = {
     findOne: function (where: FindOptionsWhere<User>): Promise<User | null> {
