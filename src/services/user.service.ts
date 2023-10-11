@@ -54,7 +54,7 @@ export default class UserService {
             templateId: constants.VERIFICATION_TEMPLATE_ID,
         })
 
-        return
+        return verification_token
     }
 
     public verifyToken(token: string) {
@@ -97,7 +97,7 @@ export default class UserService {
 
     async createUser(
         createUserDto: CreateUserDTO
-    ): Promise<Omit<User, "password">> {
+    ): Promise<{ user: Omit<User, "password">; verificationToken: string }> {
         const existingUser = await this.userRepo.findOne({
             email: createUserDto.email,
         })
@@ -110,14 +110,14 @@ export default class UserService {
             password: hashedPassword,
         })
 
-        const { accessToken: verification_token } = await this.generateToken(
+        const { accessToken: verificationToken } = await this.generateToken(
             user,
             (10 * 60 * 60).toString()
         )
 
         const verification_url = `${config.get(
             "base_url"
-        )}/api/verify-email/${verification_token}`
+        )}/api/verify-email/${verificationToken}`
         await this.mailService.send({
             personalizations: [
                 {
@@ -131,7 +131,10 @@ export default class UserService {
             templateId: constants.VERIFICATION_TEMPLATE_ID,
         })
 
-        return _.omit(user, "password")
+        return {
+            user: _.omit(user, "password"),
+            verificationToken: verificationToken,
+        }
     }
     public async auth(
         authUserDto: AuthUserDTO

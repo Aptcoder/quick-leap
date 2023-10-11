@@ -43,7 +43,7 @@ describe("User service", () => {
             .mockResolvedValue(null)
         const createSpy = jest.spyOn(mockUserRepository, "create")
         const mailSpy = jest.spyOn(mailService, "send")
-        const user = await userService.createUser(userData)
+        const { user } = await userService.createUser(userData)
 
         expect(findSpy).toHaveBeenCalledTimes(1)
         expect(findSpy).toHaveBeenCalledWith({

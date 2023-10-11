@@ -129,9 +129,12 @@ describe("/users", () => {
             expect(res.statusCode).toBe(201)
             expect(res.body).toMatchObject({
                 status: "success",
-                data: expect.objectContaining({
-                    email: "created@sample.com",
-                }),
+                data: {
+                    user: expect.objectContaining({
+                        email: "created@sample.com",
+                    }),
+                    verificationToken: expect.any(String),
+                },
             })
 
             const user = await ds.manager.findOne(User, {
