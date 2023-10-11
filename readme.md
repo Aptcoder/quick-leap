@@ -7,7 +7,6 @@
 
 ### Relevant links
 
--   Live endpoint
 -   Documentation - https://documenter.getpostman.com/view/11384363/2s9YJjSf9d
 
 ### Project structure
