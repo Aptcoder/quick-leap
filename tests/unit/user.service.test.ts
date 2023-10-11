@@ -130,9 +130,8 @@ describe("User service", () => {
         const userDetail = await userService.getUser("random-id")
 
         expect(cacheSpy).toHaveBeenCalledTimes(1)
-        expect(findSpy).toHaveBeenCalledTimes(1)
+        expect(findSpy).not.toHaveBeenCalled()
         expect(cacheSetSpy).not.toHaveBeenCalled()
-
         expect(userDetail).toBeTruthy()
     })
 })
