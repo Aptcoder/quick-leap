@@ -18,9 +18,10 @@ describe("User service", () => {
         cache = await caching("memory")
         container.bind("cache_service").toConstantValue(cache)
         container.bind("user_service").to(UserService)
-        container.bind("mail_service").to(MailService)
 
-        mailService = container.get("mail_service")
+        mailService = new MailService()
+        container.bind("mail_service").toConstantValue(mailService)
+
         userService = container.get("user_service")
         ;({ accessToken: verificationToken } =
             await userService.generateToken(sampleUser))
@@ -41,12 +42,15 @@ describe("User service", () => {
             .spyOn(mockUserRepository, "findOne")
             .mockResolvedValue(null)
         const createSpy = jest.spyOn(mockUserRepository, "create")
+        const mailSpy = jest.spyOn(mailService, "send")
         const user = await userService.createUser(userData)
 
         expect(findSpy).toHaveBeenCalledTimes(1)
         expect(findSpy).toHaveBeenCalledWith({
             email: "samuel@testing.com",
         })
+
+        expect(mailSpy).toHaveBeenCalledTimes(1)
         expect(createSpy).toHaveBeenCalledTimes(1)
         expect(user.firstName).toBe(userData.firstName)
     })
