@@ -153,6 +153,8 @@ describe("User service", () => {
         expect(findSpy).toBeCalledTimes(1)
         expect(tokenSpy).toBeCalledTimes(1)
 
+        expect(tokenSpy).toBeCalledWith(verificationToken)
+
         expect(updateSpy).toBeCalledTimes(1)
     })
 })
