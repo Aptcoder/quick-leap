@@ -24,6 +24,6 @@ export const mockUserRepository: IRepository<User> = {
         criteria: Partial<User>,
         update: Partial<User>
     ): Promise<any> {
-        throw new Error("Function not implemented.")
+        return Promise.resolve(Object.assign(sampleUser, update))
     },
 }

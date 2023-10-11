@@ -57,7 +57,7 @@ export default class UserService {
         return
     }
 
-    private verifyToken(token: string) {
+    public verifyToken(token: string) {
         return new Promise((resolve, reject) => {
             jwt.verify(
                 token,

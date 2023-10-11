@@ -9,6 +9,8 @@ import { APIError, ConflictError } from "../../src/common/errors"
 describe("User service", () => {
     let userService: UserService
     let cache: Cache
+    let mailService: MailService
+    let verificationToken: string
 
     beforeEach(async () => {
         const container = new Container()
@@ -18,7 +20,10 @@ describe("User service", () => {
         container.bind("user_service").to(UserService)
         container.bind("mail_service").to(MailService)
 
+        mailService = container.get("mail_service")
         userService = container.get("user_service")
+        ;({ accessToken: verificationToken } =
+            await userService.generateToken(sampleUser))
 
         jest.restoreAllMocks()
         jest.clearAllMocks()
@@ -133,5 +138,21 @@ describe("User service", () => {
         expect(findSpy).not.toHaveBeenCalled()
         expect(cacheSetSpy).not.toHaveBeenCalled()
         expect(userDetail).toBeTruthy()
+    })
+
+    test("Service should verify email", async () => {
+        const tokenSpy = jest
+            .spyOn(userService, "verifyToken")
+            .mockResolvedValue({
+                id: "user-id",
+            })
+        const findSpy = jest.spyOn(mockUserRepository, "findOne")
+        const updateSpy = jest.spyOn(mockUserRepository, "update")
+        await userService.verifyEmail(verificationToken)
+
+        expect(findSpy).toBeCalledTimes(1)
+        expect(tokenSpy).toBeCalledTimes(1)
+
+        expect(updateSpy).toBeCalledTimes(1)
     })
 })
