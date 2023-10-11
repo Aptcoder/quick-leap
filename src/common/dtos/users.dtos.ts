@@ -25,3 +25,8 @@ export class VerifyTokenDTO {
     @IsString()
     token: string
 }
+
+export class sendVerificationEmailDTO {
+    @IsEmail()
+    email: string
+}

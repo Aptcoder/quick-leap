@@ -14,6 +14,7 @@ import {
     AuthUserDTO,
     CreateUserDTO,
     VerifyTokenDTO,
+    sendVerificationEmailDTO,
 } from "../common/dtos/users.dtos"
 import BaseController from "./base.controller"
 import UserService from "../services/user.service"
@@ -40,8 +41,8 @@ export default class UserController extends BaseController {
     async createUser(@request() req: Request, @response() res: Response) {
         try {
             const createUserDto: CreateUserDTO = req.body
-            const tenant = await this.userService.createUser(createUserDto)
-            return this.handleSuccess(res, "User created", tenant, 201)
+            const data = await this.userService.createUser(createUserDto)
+            return this.handleSuccess(res, "User created", data, 201)
         } catch (err) {
             return this.handleError(res, err)
         }
@@ -50,9 +51,34 @@ export default class UserController extends BaseController {
     @httpPost("/login", validator({ body: AuthUserDTO }))
     async authTenant(@request() req: Request, @response() res: Response) {
         try {
-            const authTenantDto: AuthUserDTO = req.body
-            const tenant = await this.userService.auth(authTenantDto)
-            return this.handleSuccess(res, "User authenticated", tenant, 200)
+            const authUserDto: AuthUserDTO = req.body
+            const user = await this.userService.auth(authUserDto)
+            return this.handleSuccess(res, "User authenticated", user, 200)
+        } catch (err) {
+            return this.handleError(res, err)
+        }
+    }
+
+    @httpPost(
+        "/send-verification-email",
+        validator({ body: sendVerificationEmailDTO })
+    )
+    async sendVerificationEmail(
+        @request() req: Request,
+        @response() res: Response
+    ) {
+        try {
+            const verificationDto: sendVerificationEmailDTO = req.body
+            const verificationToken =
+                await this.userService.sendVerificationToken(
+                    verificationDto.email
+                )
+            return this.handleSuccess(
+                res,
+                "Verification email sent",
+                { verificationToken },
+                200
+            )
         } catch (err) {
             return this.handleError(res, err)
         }
